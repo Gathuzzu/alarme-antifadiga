@@ -11,11 +11,17 @@ audio_path_global = ""
 @app.route('/alarme', methods=['GET', 'POST'])
 def alarme():
     print("Alarme recebido do NVR!")
+    print(f"Áudio configurado: '{audio_path_global}'")
     if audio_path_global:
-        try:
-            playsound(audio_path_global, block=False)
-        except Exception as e:
-            print(f"Erro ao tocar áudio: {e}")
+        def tocar():
+            try:
+                playsound(audio_path_global, block=True, backend="gstreamer")
+                print("Áudio reproduzido com sucesso.")
+            except Exception as e:
+                print(f"ERRO ao tocar áudio: {e}")
+        threading.Thread(target=tocar, daemon=True).start()
+    else:
+        print("Nenhum áudio selecionado na interface!")
     return "OK", 200
 
 def iniciar_servidor():
@@ -55,6 +61,7 @@ class MainWindow(QWidget):
         if file_name:
             audio_path_global = file_name
             self.lbl_audio.setText(file_name)
+            print(f"Áudio selecionado: {file_name}")
 
     def iniciar_escuta(self):
         if not audio_path_global:
